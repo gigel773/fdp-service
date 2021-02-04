@@ -5,7 +5,7 @@
 
 constexpr const char cnn_path[] = "../models/facial-landmarks-35-adas-0002.xml";
 constexpr const char cnn_weights_path[] = "../models/facial-landmarks-35-adas-0002.bin";
-constexpr const char face_path[] = "../photos/face.jpg";
+constexpr const char face_path[] = "../photos/maks_face.jpg";
 constexpr const char haar_cascade_face_path[] = "../models/haarcascade_frontalface_default.xml";
 constexpr const char output_layer_name[] = "align_fc3";
 
@@ -30,7 +30,13 @@ int main()
 	for (auto& face_coordinates: faces) {
 		if (face_coordinates.height<60 && face_coordinates.width<60) continue;
 
-		auto face_frame = frame(face_coordinates);
+		int max_side = std::max(face_coordinates.height, face_coordinates.width);
+		int half_side = std::max(max_side, 60)/2;
+
+		cv::Point center = (face_coordinates.br()+face_coordinates.tl())*0.5;
+		cv::Rect face_rect(center.x-half_side, center.y-half_side, half_side*2, half_side*2);
+
+		auto face_frame = frame(face_rect);
 
 		// Find landmarks
 		InferenceEngine::Core core{};
@@ -75,7 +81,7 @@ int main()
 			face_boundary.emplace_back(x, y);
 		}
 
-		cv::Rect required_image(min_x, min_y, max_x - min_x, max_y - min_y);
+		cv::Rect required_image(min_x, min_y, max_x-min_x, max_y-min_y);
 
 		// Cut the face
 		auto mask = cv::Mat(face_frame.rows, face_frame.cols, CV_8UC3, cv::Scalar(0, 0, 0));
