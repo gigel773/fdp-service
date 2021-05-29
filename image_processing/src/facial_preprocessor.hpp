@@ -10,12 +10,17 @@
 namespace nntu::img {
 
 	class facial_preprocessor final : public stage {
+		static constexpr const char haar_cascade_face_path[] = R"(../models/haarcascade_frontalface_default.xml)";
+
 	public:
 		explicit facial_preprocessor(size_t batch_size);
 
 		void submit(cv::Mat* begin, cv::Mat* end) override;
 
 		void wait() override;
+
+	private:
+		cv::CascadeClassifier classifier_;
 	};
 
 }
