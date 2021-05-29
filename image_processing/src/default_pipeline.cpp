@@ -4,6 +4,7 @@
 #include "scale_stage.hpp"
 #include "sharpen_stage.hpp"
 #include "blur_stage.hpp"
+#include "equalize_stage.hpp"
 
 namespace nntu::img {
 	template<size_t batch_size>
@@ -15,7 +16,8 @@ namespace nntu::img {
 				new scale_stage<scale_type::scale>(2.0f),
 				new sharpen_stage(),
 				new blur_stage(),
-				new landmarks_stage(batch_size)
+				new landmarks_stage(batch_size),
+				new equalize_stage()
 		});
 
 		return result;
