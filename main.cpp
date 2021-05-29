@@ -18,8 +18,6 @@ constexpr const char face_path[] = R"(../photos/)";
  *  - Queue is being attached to pipeline
  * */
 
-constexpr const size_t batch_size = 64;
-
 int main()
 {
 //	auto work_queue = nntu::img::work_queue<batch_size>(1);
@@ -42,7 +40,8 @@ int main()
 //		cv::waitKey(0);
 //	}
 
-	nntu::net::run_server("http://localhost:8761/");
+	nntu::net::run_server("http://localhost:8081/",
+			"http://localhost:8761/");
 
 	return 0;
 }
