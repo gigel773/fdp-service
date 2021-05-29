@@ -2,7 +2,6 @@
 #include <opencv2/opencv.hpp>
 
 #include <filesystem>
-#include <common_processor.hpp>
 
 #include <work_queue.hpp>
 #include <stage.hpp>
@@ -23,9 +22,7 @@ int main()
 {
 	// Cut the face
 	auto face_classifier = cv::CascadeClassifier(haar_cascade_face_path);
-
-	auto preprocessor = nntu::img::preprocessor_impl(64);
-	auto processor = nntu::img::landmarks_impl(64);
+	auto pipeline = nntu::img::default_pipeline_impl<64>();
 
 	std::vector<cv::Mat> gray_faces;
 
@@ -34,8 +31,6 @@ int main()
 		std::cout << "Processing: " << path.path().c_str() << std::endl;
 
 		auto frame = cv::imread(path.path().c_str());
-
-		processor->submit(frame);
 
 		auto frame_gray = cv::Mat();
 		auto faces = std::vector<cv::Rect>();
@@ -58,14 +53,15 @@ int main()
 
 			auto face_frame = frame(face_rect);
 
-			processor->submit(face_frame);
+//			processor->submit(face_frame);
 
 			gray_faces.push_back(face_frame);
 		}
 	}
 
-	auto res = processor->get_result(gray_faces);
-	for (auto it: res) {
+	pipeline.process(gray_faces.begin(), gray_faces.end());
+
+	for (auto it: gray_faces) {
 		cv::imshow("Face", it);
 		cv::waitKey(0);
 	}

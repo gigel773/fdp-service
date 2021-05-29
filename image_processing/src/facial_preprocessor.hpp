@@ -2,22 +2,20 @@
 #ifndef FDP_FACIAL_PREPROCESSOR_HPP
 #define FDP_FACIAL_PREPROCESSOR_HPP
 
-#include <common_processor.hpp>
 #include <atomic>
+#include <opencv2/opencv.hpp>
+
+#include <stage.hpp>
 
 namespace nntu::img {
 
-	class facial_preprocessor final : public queue {
+	class facial_preprocessor final : public stage {
 	public:
 		explicit facial_preprocessor(size_t batch_size);
 
-		void submit(const cv::Mat& frame) override;
+		void submit(cv::Mat* begin, cv::Mat* end) override;
 
-		auto get_result(const std::vector<cv::Mat>& input) -> std::vector<cv::Mat> override;
-
-	private:
-		std::vector<cv::Mat> image_pool_;
-		std::atomic<size_t> image_count_;
+		void wait() override;
 	};
 
 }

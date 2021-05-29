@@ -6,11 +6,11 @@
 #include <opencv2/dnn.hpp>
 #include <atomic>
 
-#include <common_processor.hpp>
+#include <stage.hpp>
 
 namespace nntu::img {
 
-	class landmarks_processor : public queue {
+	class landmarks_processor : public stage {
 		static constexpr const char cnn_path[] = "../models/facial-landmarks-35-adas-0002.xml";
 		static constexpr const char cnn_weights_path[] = "../models/facial-landmarks-35-adas-0002.bin";
 		static constexpr const char output_layer_name[] = "align_fc3";
@@ -19,9 +19,11 @@ namespace nntu::img {
 	public:
 		explicit landmarks_processor(size_t batch_size);
 
-		void submit(const cv::Mat& frame) override;
+		void submit(cv::Mat* begin, cv::Mat* end) override;
 
-		auto get_result(const std::vector<cv::Mat>& input) -> std::vector<cv::Mat> override;
+		void wait() override;
+
+		~landmarks_processor() override = default;
 
 	private:
 		InferenceEngine::Core core_{};
@@ -32,6 +34,8 @@ namespace nntu::img {
 
 		const size_t wq_size_;
 		std::atomic<size_t> image_count_ = 0;
+		cv::Mat* begin_ = nullptr;
+		cv::Mat* end_ = nullptr;
 	};
 
 }

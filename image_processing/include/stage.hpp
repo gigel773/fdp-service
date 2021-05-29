@@ -4,7 +4,12 @@
 namespace nntu::img {
 
 	class stage {
-		
+	public:
+		virtual void submit(cv::Mat* begin, cv::Mat* end) = 0;
+
+		virtual void wait() = 0;
+
+		virtual ~stage() = default;
 	};
 }
 

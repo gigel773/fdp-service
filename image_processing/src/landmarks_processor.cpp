@@ -63,29 +63,37 @@ nntu::img::landmarks_processor::landmarks_processor(size_t batch_size)
 	request_ = executable_network_.CreateInferRequest();
 }
 
-void nntu::img::landmarks_processor::submit(const cv::Mat& frame)
+void nntu::img::landmarks_processor::submit(cv::Mat* begin, cv::Mat* end)
 {
+	begin_ = begin;
+	end_ = end;
+
 	auto input = input_info_.begin();
 	auto blob_ptr = request_.GetBlob(input->first);
+	size_t image_count = 0;
 
-	detail::fill_blob(frame, blob_ptr, image_count_);
-	image_count_++;
+	for (auto* cur = begin_; cur<end_; cur++) {
+		detail::fill_blob(*cur, blob_ptr, image_count);
+		++image_count;
+	}
+
+	request_.SetBatch(image_count);
+	request_.StartAsync();
 }
 
-auto nntu::img::landmarks_processor::get_result(const std::vector<cv::Mat>& input) -> std::vector<cv::Mat>
+void nntu::img::landmarks_processor::wait()
 {
-	std::vector<cv::Mat> results;
-
-	request_.SetBatch(image_count_);
-	request_.Infer();
+	request_.Wait(100);
 
 	auto landmarks_blob = request_.GetBlob(output_layer_name);
 
 	InferenceEngine::LockedMemory<const void> landmarks_blob_mapped =
 			InferenceEngine::as<InferenceEngine::MemoryBlob>(request_.GetBlob(output_layer_name))->rmap();
 
-	for (size_t batch_idx = 0; batch_idx<image_count_; batch_idx++) {
-		auto& img = input[batch_idx];
+	auto* cur_img = begin_;
+
+	for (size_t batch_idx = 0; cur_img<end_; batch_idx++, cur_img++) {
+		auto& img = *cur_img;
 		const float* coordinates_ptr = landmarks_blob_mapped.as<float*>()+(coordinates_pair_count*batch_idx);
 
 		std::vector<float> coords(coordinates_ptr, coordinates_ptr+coordinates_pair_count);
@@ -120,15 +128,59 @@ auto nntu::img::landmarks_processor::get_result(const std::vector<cv::Mat>& inpu
 		cv::fillConvexPoly(mask, ordered_landmarks, cv::Scalar(255, 255, 255));
 
 		img.copyTo(resulted_face, mask);
-		results.push_back(resulted_face(required_image));
+		*cur_img = resulted_face(required_image);
 	}
-
-	image_count_ = 0;
-
-	return results;
 }
 
-auto nntu::img::landmarks_impl(size_t batch_size) -> std::shared_ptr<queue>
-{
-	return std::make_shared<landmarks_processor>(batch_size);
-}
+//auto nntu::img::landmarks_processor::get_result(const std::vector<cv::Mat>& input) -> std::vector<cv::Mat>
+//{
+//	std::vector<cv::Mat> results;
+//
+//	auto landmarks_blob = request_.GetBlob(output_layer_name);
+//
+//	InferenceEngine::LockedMemory<const void> landmarks_blob_mapped =
+//			InferenceEngine::as<InferenceEngine::MemoryBlob>(request_.GetBlob(output_layer_name))->rmap();
+//
+//	for (size_t batch_idx = 0; batch_idx<image_count_; batch_idx++) {
+//		auto& img = input[batch_idx];
+//		const float* coordinates_ptr = landmarks_blob_mapped.as<float*>()+(coordinates_pair_count*batch_idx);
+//
+//		std::vector<float> coords(coordinates_ptr, coordinates_ptr+coordinates_pair_count);
+//		std::vector<cv::Point> face_boundary;
+//		face_boundary.reserve(22);
+//
+//		int max_y = std::numeric_limits<int>::min();
+//		int max_x = std::numeric_limits<int>::min();
+//		int min_y = std::numeric_limits<int>::max();
+//		int min_x = std::numeric_limits<int>::max();
+//
+//		for (int i = 12; i<34; i++) {
+//			int x = static_cast<int>(img.size().width*coordinates_ptr[i*2]);
+//			int y = static_cast<int>(img.size().height*coordinates_ptr[i*2+1]);
+//
+//			max_x = std::max(max_x, x);
+//			max_y = std::max(max_y, y);
+//			min_x = std::min(min_x, x);
+//			min_y = std::min(min_y, y);
+//
+//			face_boundary.emplace_back(x, y);
+//		}
+//
+//		cv::Rect required_image(min_x, min_y, max_x-min_x, max_y-min_y);
+//
+//		// Cut the face
+//		auto mask = cv::Mat(img.rows, img.cols, CV_8UC3, cv::Scalar(0, 0, 0));
+//		auto resulted_face = cv::Mat();
+//		auto ordered_landmarks = std::vector<cv::Point>();
+//
+//		cv::convexHull(face_boundary, ordered_landmarks);
+//		cv::fillConvexPoly(mask, ordered_landmarks, cv::Scalar(255, 255, 255));
+//
+//		img.copyTo(resulted_face, mask);
+//		results.push_back(resulted_face(required_image));
+//	}
+//
+//	image_count_ = 0;
+//
+//	return results;
+//}
