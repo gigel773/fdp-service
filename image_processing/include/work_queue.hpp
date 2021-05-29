@@ -54,6 +54,11 @@ namespace nntu::img {
 			last_img_idx_ = pool_position_idx_;
 			pool_position_idx_ = 0;
 		}
+		
+		void wait()
+		{
+			if (last_processing_.valid()) last_processing_.wait();
+		}
 
 		auto begin() -> typename image_pool_t::iterator
 		{
@@ -63,11 +68,6 @@ namespace nntu::img {
 		auto end() -> typename image_pool_t::iterator
 		{
 			return image_pool_.begin()+last_img_idx_;
-		}
-
-		void wait()
-		{
-			if (last_processing_.valid()) last_processing_.wait();
 		}
 
 	private:
