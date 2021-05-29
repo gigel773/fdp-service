@@ -4,9 +4,11 @@ find_package(InferenceEngine REQUIRED)
 find_package(ngraph REQUIRED)
 
 add_library(nip
-        src/landmarks_processor.cpp
-        src/facial_preprocessor.cpp
-        src/default_pipeline.cpp)
+        src/landmarks_stage.cpp
+        src/facial_cut_stage.cpp
+        src/default_pipeline.cpp
+        src/scale_stage.cpp src/sharpen_stage.cpp src/sharpen_stage.hpp src/blur_stage.cpp src/blur_stage.hpp src/equalize_stage.cpp src/equalize_stage.hpp)
+
 target_include_directories(nip PUBLIC include
         PRIVATE ${InferenceEngine_INCLUDE_DIRS}
         PRIVATE ${OpenCV_INCLUDE_DIRS})
