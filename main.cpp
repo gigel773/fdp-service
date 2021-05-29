@@ -1,4 +1,5 @@
 #include <iostream>
+#include <nips.hpp>
 #include <opencv2/opencv.hpp>
 
 #include <filesystem>
@@ -21,25 +22,27 @@ constexpr const size_t batch_size = 64;
 
 int main()
 {
-	auto work_queue = nntu::img::work_queue<batch_size>(1);
-	auto pipeline = nntu::img::default_pipeline_impl<batch_size>(120);
+//	auto work_queue = nntu::img::work_queue<batch_size>(1);
+//	auto pipeline = nntu::img::default_pipeline_impl<batch_size>(120);
+//
+//	work_queue.attach_to(pipeline);
+//
+//	for (const auto& path: std::filesystem::directory_iterator(face_path)) {
+//
+//		std::cout << "Processing: " << path.path().c_str() << std::endl;
+//
+//		work_queue.submit(cv::imread(path.path().c_str()));
+//	}
+//
+//	work_queue.force_processing();
+//	work_queue.wait();
+//
+//	for (const auto& it: work_queue) {
+//		cv::imshow("Face", it);
+//		cv::waitKey(0);
+//	}
 
-	work_queue.attach_to(pipeline);
-
-	for (const auto& path: std::filesystem::directory_iterator(face_path)) {
-
-		std::cout << "Processing: " << path.path().c_str() << std::endl;
-
-		work_queue.submit(cv::imread(path.path().c_str()));
-	}
-
-	work_queue.force_processing();
-	work_queue.wait();
-
-	for (const auto& it: work_queue) {
-		cv::imshow("Face", it);
-		cv::waitKey(0);
-	}
+	nntu::net::run_server("http://localhost:8761/");
 
 	return 0;
 }
