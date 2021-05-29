@@ -11,6 +11,8 @@
 #define LOG()
 #endif
 
+#include <opencv2/opencv.hpp>
+
 namespace nntu::img {
 
 	class stage {
