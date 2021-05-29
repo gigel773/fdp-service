@@ -12,13 +12,11 @@ namespace nntu::img {
 
 	class queue {
 	public:
-		virtual void set_queue_size(size_t value) = 0;
-
 		virtual void submit(const cv::Mat& frame) = 0;
 
-		virtual auto get_result(const cv::Mat& input) -> cv::Mat = 0;
+		virtual auto get_result(const std::vector<cv::Mat>& input) -> std::vector<cv::Mat> = 0;
 
-		static auto default_impl() -> std::shared_ptr<queue>;
+		static auto default_impl(size_t batch_size) -> std::shared_ptr<queue>;
 	};
 }
 

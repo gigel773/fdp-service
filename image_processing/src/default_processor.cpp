@@ -2,7 +2,7 @@
 
 namespace nntu::img::detail {
 
-	void fill_blob(const cv::Mat& orig_image, InferenceEngine::Blob::Ptr& blob, uint32_t batchIndex)
+	static inline void fill_blob(const cv::Mat& orig_image, InferenceEngine::Blob::Ptr& blob, size_t batchIndex)
 	{
 		InferenceEngine::SizeVector blobSize = blob->getTensorDesc().getDims();
 		const size_t width = blobSize[3];
@@ -21,7 +21,7 @@ namespace nntu::img::detail {
 			cv::resize(orig_image, resized_image, cv::Size(width, height));
 		}
 
-		int batchOffset = batchIndex*width*height*channels;
+		size_t batchOffset = batchIndex*width*height*channels;
 
 		if (channels==1) {
 			for (size_t h = 0; h<height; h++) {
@@ -46,21 +46,21 @@ namespace nntu::img::detail {
 	}
 }
 
-nntu::img::default_processor::default_processor()
+nntu::img::default_processor::default_processor(size_t batch_size)
+		:wq_size_(batch_size)
 {
+	const std::map<std::string, std::string> dyn_config =
+			{{ InferenceEngine::PluginConfigParams::KEY_DYN_BATCH_ENABLED, InferenceEngine::PluginConfigParams::YES }};
+
 	network_ = core_.ReadNetwork(cnn_path, cnn_weights_path);
+	network_.setBatchSize(batch_size);
 	input_info_ = network_.getInputsInfo();
 
 	auto input = input_info_.begin();
 	input->second->setPrecision(InferenceEngine::Precision::U8);
 
-	executable_network_ = core_.LoadNetwork(network_, "CPU");
+	executable_network_ = core_.LoadNetwork(network_, "CPU", dyn_config);
 	request_ = executable_network_.CreateInferRequest();
-}
-
-void nntu::img::default_processor::set_queue_size(size_t value)
-{
-
 }
 
 void nntu::img::default_processor::submit(const cv::Mat& frame)
@@ -68,56 +68,67 @@ void nntu::img::default_processor::submit(const cv::Mat& frame)
 	auto input = input_info_.begin();
 	auto blob_ptr = request_.GetBlob(input->first);
 
-	detail::fill_blob(frame, blob_ptr, 0);
-
-	request_.Infer();
+	detail::fill_blob(frame, blob_ptr, faces_to_process_);
+	faces_to_process_++;
 }
 
-auto nntu::img::default_processor::get_result(const cv::Mat& input) -> cv::Mat
+auto nntu::img::default_processor::get_result(const std::vector<cv::Mat>& input) -> std::vector<cv::Mat>
 {
-	request_.Wait(1000);
+	std::vector<cv::Mat> results;
+
+	request_.SetBatch(faces_to_process_);
+	request_.Infer();
 
 	auto landmarks_blob = request_.GetBlob(output_layer_name);
 
 	InferenceEngine::LockedMemory<const void> landmarks_blob_mapped =
 			InferenceEngine::as<InferenceEngine::MemoryBlob>(request_.GetBlob(output_layer_name))->rmap();
-	const float* coordinates_ptr = landmarks_blob_mapped.as<float*>();
 
-	std::vector<cv::Point> face_boundary;
-	face_boundary.reserve(22);
+	for (size_t batch_idx = 0; batch_idx<faces_to_process_; batch_idx++) {
+		auto& img = input[batch_idx];
+		const float* coordinates_ptr = landmarks_blob_mapped.as<float*>()+(coordinates_pair_count*batch_idx);
 
-	int max_y = std::numeric_limits<int>::min();
-	int max_x = std::numeric_limits<int>::min();
-	int min_y = std::numeric_limits<int>::max();
-	int min_x = std::numeric_limits<int>::max();
+		std::vector<float> coords(coordinates_ptr, coordinates_ptr+coordinates_pair_count);
+		std::vector<cv::Point> face_boundary;
+		face_boundary.reserve(22);
 
-	for (int i = 12; i<34; i++) {
-		int x = static_cast<int>(input.size().width*coordinates_ptr[i*2]);
-		int y = static_cast<int>(input.size().height*coordinates_ptr[i*2+1]);
+		int max_y = std::numeric_limits<int>::min();
+		int max_x = std::numeric_limits<int>::min();
+		int min_y = std::numeric_limits<int>::max();
+		int min_x = std::numeric_limits<int>::max();
 
-		max_x = std::max(max_x, x);
-		max_y = std::max(max_y, y);
-		min_x = std::min(min_x, x);
-		min_y = std::min(min_y, y);
+		for (int i = 12; i<34; i++) {
+			int x = static_cast<int>(img.size().width*coordinates_ptr[i*2]);
+			int y = static_cast<int>(img.size().height*coordinates_ptr[i*2+1]);
 
-		face_boundary.emplace_back(x, y);
+			max_x = std::max(max_x, x);
+			max_y = std::max(max_y, y);
+			min_x = std::min(min_x, x);
+			min_y = std::min(min_y, y);
+
+			face_boundary.emplace_back(x, y);
+		}
+
+		cv::Rect required_image(min_x, min_y, max_x-min_x, max_y-min_y);
+
+		// Cut the face
+		auto mask = cv::Mat(img.rows, img.cols, CV_8UC3, cv::Scalar(0, 0, 0));
+		auto resulted_face = cv::Mat();
+		auto ordered_landmarks = std::vector<cv::Point>();
+
+		cv::convexHull(face_boundary, ordered_landmarks);
+		cv::fillConvexPoly(mask, ordered_landmarks, cv::Scalar(255, 255, 255));
+
+		img.copyTo(resulted_face, mask);
+		results.push_back(resulted_face(required_image));
 	}
 
-	cv::Rect required_image(min_x, min_y, max_x-min_x, max_y-min_y);
+	faces_to_process_ = 0;
 
-	// Cut the face
-	auto mask = cv::Mat(input.rows, input.cols, CV_8UC3, cv::Scalar(0, 0, 0));
-	auto resulted_face = cv::Mat();
-	auto ordered_landmarks = std::vector<cv::Point>();
-
-	cv::convexHull(face_boundary, ordered_landmarks);
-	cv::fillConvexPoly(mask, ordered_landmarks, cv::Scalar(255, 255, 255));
-
-	input.copyTo(resulted_face, mask);
-	return resulted_face(required_image);
+	return results;
 }
 
-auto nntu::img::queue::default_impl() -> std::shared_ptr<queue>
+auto nntu::img::queue::default_impl(size_t batch_size) -> std::shared_ptr<queue>
 {
-	return std::make_shared<default_processor>();
+	return std::make_shared<default_processor>(batch_size);
 }

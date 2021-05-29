@@ -11,7 +11,9 @@ int main()
 {
 	// Cut the face
 	auto face_classifier = cv::CascadeClassifier(haar_cascade_face_path);
-	auto processor = nntu::img::queue::default_impl();
+	auto processor = nntu::img::queue::default_impl(64);
+
+	std::vector<cv::Mat> gray_faces;
 
 	for (const auto& path: std::filesystem::directory_iterator(face_path)) {
 
@@ -41,9 +43,14 @@ int main()
 
 			processor->submit(face_frame);
 
-			cv::imshow("Face", processor->get_result(face_frame));
-			cv::waitKey(0);
+			gray_faces.push_back(face_frame);
 		}
+	}
+
+	auto res = processor->get_result(gray_faces);
+	for (auto it: res) {
+		cv::imshow("Face", it);
+		cv::waitKey(0);
 	}
 
 	return 0;
