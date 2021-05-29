@@ -11,8 +11,8 @@
 namespace nntu::img {
 
 	class landmarks_stage : public stage {
-		static constexpr const char cnn_path[] = "../models/facial-landmarks-35-adas-0002.xml";
-		static constexpr const char cnn_weights_path[] = "../models/facial-landmarks-35-adas-0002.bin";
+		static constexpr const char cnn_path[] = "facial-landmarks-35-adas-0002.xml";
+		static constexpr const char cnn_weights_path[] = "facial-landmarks-35-adas-0002.bin";
 		static constexpr const char output_layer_name[] = "align_fc3";
 		static constexpr const size_t coordinates_pair_count = 68;
 

@@ -10,7 +10,7 @@
 namespace nntu::img {
 
 	class facial_cut_stage final : public stage {
-		static constexpr const char haar_cascade_face_path[] = R"(../models/haarcascade_frontalface_default.xml)";
+		static constexpr const char haar_cascade_face_path[] = R"(haarcascade_frontalface_default.xml)";
 
 	public:
 		explicit facial_cut_stage(size_t batch_size);
