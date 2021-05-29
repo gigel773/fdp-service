@@ -1,4 +1,4 @@
-#include "landmarks_processor.hpp"
+#include "landmarks_stage.hpp"
 
 namespace nntu::img::detail {
 
@@ -46,7 +46,7 @@ namespace nntu::img::detail {
 	}
 }
 
-nntu::img::landmarks_processor::landmarks_processor(size_t batch_size)
+nntu::img::landmarks_stage::landmarks_stage(size_t batch_size)
 		:wq_size_(batch_size)
 {
 	const std::map<std::string, std::string> dyn_config =
@@ -63,7 +63,7 @@ nntu::img::landmarks_processor::landmarks_processor(size_t batch_size)
 	request_ = executable_network_.CreateInferRequest();
 }
 
-void nntu::img::landmarks_processor::submit(cv::Mat* begin, cv::Mat* end)
+void nntu::img::landmarks_stage::submit(cv::Mat* begin, cv::Mat* end)
 {
 	begin_ = begin;
 	end_ = end;
@@ -81,7 +81,7 @@ void nntu::img::landmarks_processor::submit(cv::Mat* begin, cv::Mat* end)
 	request_.StartAsync();
 }
 
-void nntu::img::landmarks_processor::wait()
+void nntu::img::landmarks_stage::wait()
 {
 	request_.Wait(100);
 

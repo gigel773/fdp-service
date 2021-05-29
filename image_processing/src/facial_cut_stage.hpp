@@ -1,6 +1,6 @@
 
-#ifndef FDP_FACIAL_PREPROCESSOR_HPP
-#define FDP_FACIAL_PREPROCESSOR_HPP
+#ifndef FDP_FACIAL_CUT_STAGE_HPP
+#define FDP_FACIAL_CUT_STAGE_HPP
 
 #include <atomic>
 #include <opencv2/opencv.hpp>
@@ -9,11 +9,11 @@
 
 namespace nntu::img {
 
-	class facial_preprocessor final : public stage {
+	class facial_cut_stage final : public stage {
 		static constexpr const char haar_cascade_face_path[] = R"(../models/haarcascade_frontalface_default.xml)";
 
 	public:
-		explicit facial_preprocessor(size_t batch_size);
+		explicit facial_cut_stage(size_t batch_size);
 
 		void submit(cv::Mat* begin, cv::Mat* end) override;
 
@@ -24,4 +24,4 @@ namespace nntu::img {
 	};
 
 }
-#endif //FDP_FACIAL_PREPROCESSOR_HPP
+#endif //FDP_FACIAL_CUT_STAGE_HPP

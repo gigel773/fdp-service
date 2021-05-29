@@ -1,11 +1,11 @@
-#include "facial_preprocessor.hpp"
+#include "facial_cut_stage.hpp"
 
-nntu::img::facial_preprocessor::facial_preprocessor(size_t batch_size)
+nntu::img::facial_cut_stage::facial_cut_stage(size_t batch_size)
 {
 	classifier_ = cv::CascadeClassifier(haar_cascade_face_path);
 }
 
-void nntu::img::facial_preprocessor::submit(cv::Mat* begin, cv::Mat* end)
+void nntu::img::facial_cut_stage::submit(cv::Mat* begin, cv::Mat* end)
 {
 	for (auto* cur = begin; cur<end; cur++) {
 		auto frame_gray = cv::Mat();
@@ -29,7 +29,7 @@ void nntu::img::facial_preprocessor::submit(cv::Mat* begin, cv::Mat* end)
 	}
 }
 
-void nntu::img::facial_preprocessor::wait()
+void nntu::img::facial_cut_stage::wait()
 {
 	// No async yet
 }
