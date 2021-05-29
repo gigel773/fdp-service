@@ -17,25 +17,26 @@ constexpr const char face_path[] = R"(../photos/)";
  *  - Queue is being attached to pipeline
  * */
 
+constexpr const size_t batch_size = 64;
+
 int main()
 {
-	// Cut the face
-	auto pipeline = nntu::img::default_pipeline_impl<64>();
+	auto work_queue = nntu::img::work_queue<batch_size>(1);
+	auto pipeline = nntu::img::default_pipeline_impl<batch_size>();
 
-	std::vector<cv::Mat> faces;
+	work_queue.attach_to(pipeline);
 
 	for (const auto& path: std::filesystem::directory_iterator(face_path)) {
 
 		std::cout << "Processing: " << path.path().c_str() << std::endl;
 
-		auto frame = cv::imread(path.path().c_str());
-
-		faces.push_back(frame);
+		work_queue.submit(cv::imread(path.path().c_str()));
 	}
 
-	pipeline.process(faces.begin(), faces.end());
+	work_queue.force_processing();
+	work_queue.wait();
 
-	for (const auto& it: faces) {
+	for (const auto& it: work_queue) {
 		cv::imshow("Face", it);
 		cv::waitKey(0);
 	}
