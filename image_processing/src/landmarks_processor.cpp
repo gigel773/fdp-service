@@ -1,4 +1,4 @@
-#include "default_processor.hpp"
+#include "landmarks_processor.hpp"
 
 namespace nntu::img::detail {
 
@@ -46,7 +46,7 @@ namespace nntu::img::detail {
 	}
 }
 
-nntu::img::default_processor::default_processor(size_t batch_size)
+nntu::img::landmarks_processor::landmarks_processor(size_t batch_size)
 		:wq_size_(batch_size)
 {
 	const std::map<std::string, std::string> dyn_config =
@@ -63,20 +63,20 @@ nntu::img::default_processor::default_processor(size_t batch_size)
 	request_ = executable_network_.CreateInferRequest();
 }
 
-void nntu::img::default_processor::submit(const cv::Mat& frame)
+void nntu::img::landmarks_processor::submit(const cv::Mat& frame)
 {
 	auto input = input_info_.begin();
 	auto blob_ptr = request_.GetBlob(input->first);
 
-	detail::fill_blob(frame, blob_ptr, faces_to_process_);
-	faces_to_process_++;
+	detail::fill_blob(frame, blob_ptr, image_count_);
+	image_count_++;
 }
 
-auto nntu::img::default_processor::get_result(const std::vector<cv::Mat>& input) -> std::vector<cv::Mat>
+auto nntu::img::landmarks_processor::get_result(const std::vector<cv::Mat>& input) -> std::vector<cv::Mat>
 {
 	std::vector<cv::Mat> results;
 
-	request_.SetBatch(faces_to_process_);
+	request_.SetBatch(image_count_);
 	request_.Infer();
 
 	auto landmarks_blob = request_.GetBlob(output_layer_name);
@@ -84,7 +84,7 @@ auto nntu::img::default_processor::get_result(const std::vector<cv::Mat>& input)
 	InferenceEngine::LockedMemory<const void> landmarks_blob_mapped =
 			InferenceEngine::as<InferenceEngine::MemoryBlob>(request_.GetBlob(output_layer_name))->rmap();
 
-	for (size_t batch_idx = 0; batch_idx<faces_to_process_; batch_idx++) {
+	for (size_t batch_idx = 0; batch_idx<image_count_; batch_idx++) {
 		auto& img = input[batch_idx];
 		const float* coordinates_ptr = landmarks_blob_mapped.as<float*>()+(coordinates_pair_count*batch_idx);
 
@@ -123,12 +123,12 @@ auto nntu::img::default_processor::get_result(const std::vector<cv::Mat>& input)
 		results.push_back(resulted_face(required_image));
 	}
 
-	faces_to_process_ = 0;
+	image_count_ = 0;
 
 	return results;
 }
 
-auto nntu::img::queue::default_impl(size_t batch_size) -> std::shared_ptr<queue>
+auto nntu::img::landmarks_impl(size_t batch_size) -> std::shared_ptr<queue>
 {
-	return std::make_shared<default_processor>(batch_size);
+	return std::make_shared<landmarks_processor>(batch_size);
 }

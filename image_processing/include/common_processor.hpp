@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <opencv2/opencv.hpp>
 
 namespace nntu::img {
 
@@ -16,8 +17,11 @@ namespace nntu::img {
 
 		virtual auto get_result(const std::vector<cv::Mat>& input) -> std::vector<cv::Mat> = 0;
 
-		static auto default_impl(size_t batch_size) -> std::shared_ptr<queue>;
 	};
+
+	auto preprocessor_impl(size_t batch_size) -> std::shared_ptr<queue>;
+
+	auto landmarks_impl(size_t batch_size) -> std::shared_ptr<queue>;
 }
 
 #endif //FDP_COMMON_PROCESSOR_HPP
