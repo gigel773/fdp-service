@@ -130,57 +130,7 @@ void nntu::img::landmarks_processor::wait()
 		img.copyTo(resulted_face, mask);
 		*cur_img = resulted_face(required_image);
 	}
-}
 
-//auto nntu::img::landmarks_processor::get_result(const std::vector<cv::Mat>& input) -> std::vector<cv::Mat>
-//{
-//	std::vector<cv::Mat> results;
-//
-//	auto landmarks_blob = request_.GetBlob(output_layer_name);
-//
-//	InferenceEngine::LockedMemory<const void> landmarks_blob_mapped =
-//			InferenceEngine::as<InferenceEngine::MemoryBlob>(request_.GetBlob(output_layer_name))->rmap();
-//
-//	for (size_t batch_idx = 0; batch_idx<image_count_; batch_idx++) {
-//		auto& img = input[batch_idx];
-//		const float* coordinates_ptr = landmarks_blob_mapped.as<float*>()+(coordinates_pair_count*batch_idx);
-//
-//		std::vector<float> coords(coordinates_ptr, coordinates_ptr+coordinates_pair_count);
-//		std::vector<cv::Point> face_boundary;
-//		face_boundary.reserve(22);
-//
-//		int max_y = std::numeric_limits<int>::min();
-//		int max_x = std::numeric_limits<int>::min();
-//		int min_y = std::numeric_limits<int>::max();
-//		int min_x = std::numeric_limits<int>::max();
-//
-//		for (int i = 12; i<34; i++) {
-//			int x = static_cast<int>(img.size().width*coordinates_ptr[i*2]);
-//			int y = static_cast<int>(img.size().height*coordinates_ptr[i*2+1]);
-//
-//			max_x = std::max(max_x, x);
-//			max_y = std::max(max_y, y);
-//			min_x = std::min(min_x, x);
-//			min_y = std::min(min_y, y);
-//
-//			face_boundary.emplace_back(x, y);
-//		}
-//
-//		cv::Rect required_image(min_x, min_y, max_x-min_x, max_y-min_y);
-//
-//		// Cut the face
-//		auto mask = cv::Mat(img.rows, img.cols, CV_8UC3, cv::Scalar(0, 0, 0));
-//		auto resulted_face = cv::Mat();
-//		auto ordered_landmarks = std::vector<cv::Point>();
-//
-//		cv::convexHull(face_boundary, ordered_landmarks);
-//		cv::fillConvexPoly(mask, ordered_landmarks, cv::Scalar(255, 255, 255));
-//
-//		img.copyTo(resulted_face, mask);
-//		results.push_back(resulted_face(required_image));
-//	}
-//
-//	image_count_ = 0;
-//
-//	return results;
-//}
+	begin_ = nullptr;
+	end_ = nullptr;
+}

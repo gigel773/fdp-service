@@ -1,6 +1,16 @@
 #ifndef FDP_STAGE_HPP
 #define FDP_STAGE_HPP
 
+//#define DEBUG_STAGES
+#ifdef DEBUG_STAGES
+
+#include <iostream>
+
+#define LOG() std::cout
+#else
+#define LOG()
+#endif
+
 namespace nntu::img {
 
 	class stage {

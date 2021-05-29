@@ -43,6 +43,8 @@ namespace nntu::img {
 				first_stage = second_stage;
 				++second_stage;
 			}
+
+			(*first_stage)->wait();
 		}
 
 	private:

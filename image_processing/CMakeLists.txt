@@ -10,4 +10,6 @@ add_library(nip
 target_include_directories(nip PUBLIC include
         PRIVATE ${InferenceEngine_INCLUDE_DIRS}
         PRIVATE ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(nip PRIVATE optimized ${InferenceEngine_LIBRARIES} ${OpenCV_LIBRARIES} ${NGRAPH_LIBRARIES})
+target_link_libraries(nip PRIVATE optimized IE::inference_engine opencv_core ${NGRAPH_LIBRARIES})
+
+#target_compile_options(nip PUBLIC -g PUBLIC -O0)
