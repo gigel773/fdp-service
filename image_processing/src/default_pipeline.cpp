@@ -8,7 +8,7 @@
 
 namespace nntu::img {
 	template<size_t batch_size>
-	auto default_pipeline_impl() -> pipeline<batch_size>
+	auto default_pipeline_impl(size_t required_size) -> pipeline<batch_size>
 	{
 		pipeline<batch_size> result({
 				new facial_cut_stage(batch_size),
@@ -17,15 +17,16 @@ namespace nntu::img {
 				new sharpen_stage(),
 				new blur_stage(),
 				new landmarks_stage(batch_size),
-				new equalize_stage()
+				new equalize_stage(),
+				new scale_stage<scale_type::resize>(required_size)
 		});
 
 		return result;
 	}
 
 	template
-	auto default_pipeline_impl() -> pipeline<64>;
+	auto default_pipeline_impl(size_t required_size) -> pipeline<64>;
 
 	template
-	auto default_pipeline_impl() -> pipeline<128>;
+	auto default_pipeline_impl(size_t required_size) -> pipeline<128>;
 }

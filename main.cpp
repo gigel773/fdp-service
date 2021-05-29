@@ -22,7 +22,7 @@ constexpr const size_t batch_size = 64;
 int main()
 {
 	auto work_queue = nntu::img::work_queue<batch_size>(1);
-	auto pipeline = nntu::img::default_pipeline_impl<batch_size>();
+	auto pipeline = nntu::img::default_pipeline_impl<batch_size>(120);
 
 	work_queue.attach_to(pipeline);
 

@@ -54,7 +54,7 @@ namespace nntu::img {
 	};
 
 	template<size_t batch_size>
-	auto default_pipeline_impl() -> pipeline<batch_size>;
+	auto default_pipeline_impl(size_t required_size) -> pipeline<batch_size>;
 }
 
 #endif //FDP_PIPELINE_HPP
