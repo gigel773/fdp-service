@@ -34,17 +34,23 @@ void BM_impl(benchmark::State& state)
 
 	for (auto _: state) {
 		state.PauseTiming();
-
 		auto images = load_images(face_path, batch_size-1);
-
-		for (auto& img :images) {
-			work_queue.submit(std::move(img));
-		}
+		std::atomic<size_t> images_processed = 0;
+		size_t images_submitted = 0;
 
 		state.ResumeTiming();
 
-		work_queue.force_processing();
-		work_queue.wait();
+		for (auto& img :images) {
+			work_queue.submit(std::move(img), [&images_processed](cv::Mat&& img) {
+				++images_processed;
+			});
+
+			++images_submitted;
+		}
+
+		while (images_submitted!=images_processed) {
+			work_queue.wait();
+		}
 	}
 
 	size_t total_size = 0;

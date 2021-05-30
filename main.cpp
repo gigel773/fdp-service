@@ -8,7 +8,6 @@
 #include <stage.hpp>
 #include <pipeline.hpp>
 
-
 /*
  * Hierarchy:
  *  - Async queue
@@ -26,20 +25,30 @@ int main()
 
 	work_queue.attach_to(pipeline);
 
-	for (const auto& path: std::filesystem::directory_iterator(face_path)) {
-
-		std::cout << "Processing: " << path.path().c_str() << std::endl;
-
-		work_queue.submit(cv::imread(path.path().c_str()));
-	}
-
-	work_queue.force_processing();
-	work_queue.wait();
-
-	for (const auto& it: work_queue) {
-		cv::imshow("Face", it);
-		cv::waitKey(0);
-	}
+//	std::vector<cv::Mat> images;
+//	std::atomic<size_t> images_processed = 0;
+//	size_t images_submitted = 0;
+//
+//	for (const auto& path: std::filesystem::directory_iterator(face_path)) {
+//
+//		std::cout << "Processing: " << path.path().c_str() << std::endl;
+//
+//		work_queue.submit(cv::imread(path.path().c_str()),
+//				[&images_processed, &images](cv::Mat&& img) {
+//					++images_processed;
+//					images.push_back(img);
+//				});
+//		++images_submitted;
+//	}
+//
+//	while (images_submitted!=images_processed) {
+//		work_queue.wait();
+//	}
+//
+//	for (const auto& it: images) {
+//		cv::imshow("Face", it);
+//		cv::waitKey(0);
+//	}
 
 //	nntu::net::run_server("http://localhost:8081/",
 //			"http://localhost:8761/");
