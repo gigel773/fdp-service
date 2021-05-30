@@ -2,6 +2,7 @@ project(nip)
 
 find_package(InferenceEngine REQUIRED)
 find_package(ngraph REQUIRED)
+find_package(Boost COMPONENTS thread log REQUIRED)
 
 add_library(nip
         src/landmarks_stage.cpp
@@ -12,6 +13,6 @@ add_library(nip
 target_include_directories(nip PUBLIC include
         PRIVATE ${InferenceEngine_INCLUDE_DIRS}
         PRIVATE ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(nip PUBLIC optimized IE::inference_engine ${OpenCV_LIBRARIES} ${NGRAPH_LIBRARIES})
+target_link_libraries(nip PUBLIC IE::inference_engine ${OpenCV_LIBRARIES} ${NGRAPH_LIBRARIES} ${Boost_LIBRARIES})
 
 #target_compile_options(nip PUBLIC -g PUBLIC -O0)

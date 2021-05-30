@@ -15,7 +15,9 @@ void nntu::net::image_processor::process_image(web::http::http_request request)
 				auto decoded_img = cv::imdecode(utility::conversions::from_base64(encoded_img),
 						CV_LOAD_IMAGE_COLOR);
 
-				work_queue_.submit(std::move(decoded_img));
+				work_queue_.submit(std::move(decoded_img), [request](cv::Mat&& img) {
+					request.reply(web::http::status_codes::OK);
+				});
 			})
 			.then([=]() {
 				request.reply(web::http::status_codes::OK);
