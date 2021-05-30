@@ -3,6 +3,8 @@
 
 #include <stage.hpp>
 
+#include "defs.hpp"
+
 namespace nntu::img {
 
 	class blur_stage final : public stage {

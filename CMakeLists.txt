@@ -13,5 +13,5 @@ add_subdirectory(benchmarks)
 
 add_executable(fdp main.cpp)
 target_include_directories(fdp PRIVATE image_processing/include server/include ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(fdp PUBLIC nip nips ${OpenCV_LIBRARIES})
+target_link_libraries(fdp PUBLIC nip ${OpenCV_LIBRARIES})
 #target_compile_options(fdp PUBLIC -g PUBLIC -O0)

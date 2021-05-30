@@ -93,7 +93,7 @@ namespace nntu::img {
 				auto begin = std::begin(image_pool_);
 				auto end = image_pool_.size()>batch_size ? begin+batch_size : std::end(image_pool_);
 
-				attached_pipeline_->template process(begin, end);
+				attached_pipeline_->process(begin, end);
 
 				for (size_t i = 0; i<std::distance(begin, end); i++) {
 					image_handlers_[i](std::move(image_pool_[i]));

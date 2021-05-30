@@ -6,27 +6,37 @@
 #include "blur_stage.hpp"
 #include "equalize_stage.hpp"
 
+#include <tbb/tbb.h>
+
 namespace nntu::img {
-	template<size_t batch_size>
-	auto default_pipeline_impl(size_t required_size) -> pipeline<batch_size>
-	{
-		pipeline<batch_size> result({
-				new facial_cut_stage(batch_size),
-				new scale_stage<scale_type::resize>(256),
-				new scale_stage<scale_type::scale>(2.0f),
-				new sharpen_stage(),
-				new blur_stage(),
-				new landmarks_stage(batch_size),
-				new equalize_stage(),
-				new scale_stage<scale_type::resize>(required_size)
-		});
+    template<size_t batch_size>
+    auto default_pipeline_impl(size_t required_size) -> pipeline<batch_size>
+    {
+#ifdef WITH_TBB
+        tbb::task_scheduler_init init(tbb::task_scheduler_init::automatic);
+#endif
 
-		return result;
-	}
+        pipeline<batch_size> result({
+                new scale_stage<scale_type::scale>(5.0f),
+                new facial_cut_stage(batch_size),
+                new scale_stage<scale_type::resize>(256),
+                new scale_stage<scale_type::scale>(2.0f),
+                new sharpen_stage(),
+                new blur_stage(),
+                new landmarks_stage(batch_size),
+                new equalize_stage(),
+                new scale_stage<scale_type::resize>(required_size)
+        });
 
-	template
-	auto default_pipeline_impl(size_t required_size) -> pipeline<64>;
+        return result;
+    }
 
-	template
-	auto default_pipeline_impl(size_t required_size) -> pipeline<128>;
+    template
+    auto default_pipeline_impl(size_t required_size) -> pipeline<64>;
+
+    template
+    auto default_pipeline_impl(size_t required_size) -> pipeline<128>;
+
+    template
+    auto default_pipeline_impl(size_t required_size) -> pipeline<512>;
 }

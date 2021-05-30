@@ -7,6 +7,8 @@
 
 #include <stage.hpp>
 
+#include "defs.hpp"
+
 namespace nntu::img {
 
 	class facial_cut_stage final : public stage {
