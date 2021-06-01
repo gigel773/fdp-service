@@ -22,7 +22,7 @@ namespace nntu::img {
 
     void scale_stage<scale_type::resize>::submit(cv::Mat* begin, cv::Mat* end)
     {
-#if 1
+#ifdef WITH_TBB
         tbb::parallel_for(tbb::blocked_range<cv::Mat*>(begin, end),
                 [this](tbb::blocked_range<cv::Mat*> range) {
                     for (auto it = range.begin(); it<range.end(); it++) {

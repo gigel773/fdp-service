@@ -8,8 +8,15 @@ find_package(Boost COMPONENTS thread log REQUIRED)
 add_library(nip
         src/landmarks_stage.cpp
         src/facial_cut_stage.cpp
-        src/default_pipeline.cpp
-        src/scale_stage.cpp src/sharpen_stage.cpp src/sharpen_stage.hpp src/blur_stage.cpp src/blur_stage.hpp src/equalize_stage.cpp src/equalize_stage.hpp)
+        src/pipeline_impl.cpp
+        src/scale_stage.cpp
+        src/sharpen_stage.cpp
+        src/sharpen_stage.hpp
+        src/blur_stage.cpp
+        src/blur_stage.hpp
+        src/equalize_stage.cpp
+        src/equalize_stage.hpp
+        src/preprocess_gpu_stage.cpp)
 
 target_include_directories(nip PUBLIC include
         PRIVATE ${InferenceEngine_INCLUDE_DIRS}
