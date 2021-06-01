@@ -1,6 +1,8 @@
 #include "facial_cut_stage.hpp"
 
 #include <tbb/parallel_for.h>
+#include <execution>
+#include <algorithm>
 
 nntu::img::facial_cut_stage::facial_cut_stage(size_t batch_size)
 {
@@ -25,7 +27,12 @@ void nntu::img::facial_cut_stage::submit(cv::Mat* begin, cv::Mat* end)
 
                     if (faces.empty()) throw std::runtime_error("No faces were found");
 
-                    auto face_coordinates = faces[0];
+                    auto face_coordinates = *std::max_element(std::execution::par_unseq,
+                            faces.begin(),
+                            faces.end(),
+                            [](const cv::Rect& a, const cv::Rect& b) -> bool {
+                                return a.area()<b.area();
+                            });
                     int max_side = std::max(face_coordinates.height, face_coordinates.width);
                     int half_side = std::max(max_side, 60)/2;
 

@@ -6,6 +6,7 @@
 #include "blur_stage.hpp"
 #include "equalize_stage.hpp"
 #include "preprocess_gpu_stage.hpp"
+#include "postprocess_gpu_stage.hpp"
 
 #include <tbb/tbb.h>
 
@@ -19,7 +20,7 @@ namespace nntu::img {
         pipeline<batch_size> result({
                 new scale_stage<scale_type::scale>(5.0f),
                 new facial_cut_stage(batch_size),
-                new scale_stage<scale_type::resize>(512),
+                new scale_stage<scale_type::resize>(128),
                 new sharpen_stage(),
                 new blur_stage(),
                 new landmarks_stage(batch_size),
@@ -36,8 +37,7 @@ namespace nntu::img {
         pipeline<batch_size> result({
                 new preprocess_gpu_stage(),
                 new landmarks_stage(batch_size),
-                new equalize_stage(),
-                new scale_stage<scale_type::resize>(required_size)
+                new postprocess_gpu_stage(required_size)
         });
 
         return result;

@@ -5,7 +5,6 @@
 #include <filesystem>
 
 #include <work_queue.hpp>
-#include <stage.hpp>
 #include <pipeline.hpp>
 
 /*

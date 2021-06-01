@@ -24,7 +24,7 @@ void nntu::img::preprocess_gpu_stage::submit(cv::Mat* begin, cv::Mat* end)
         auto faces = std::vector<cv::Rect>();
 
         // Convert to gray
-        cv::cuda::resize(gpu_in_frames[i], gpu_in_frames[i], cv::Size(), 5.0f, 5.0f);
+        cv::cuda::resize(gpu_in_frames[i], gpu_in_frames[i], cv::Size(1024, 1024));
         cv::cuda::cvtColor(gpu_in_frames[i], gpu_out_frames[i], cv::COLOR_BGR2GRAY);
         cv::cuda::equalizeHist(gpu_out_frames[i], gpu_out_frames[i]);
 
@@ -49,12 +49,11 @@ void nntu::img::preprocess_gpu_stage::submit(cv::Mat* begin, cv::Mat* end)
 
         filter_gaussian->apply(gpu_in_frames[i], gpu_out_frames[i]);
         cv::cuda::addWeighted(gpu_in_frames[i], 1.5, gpu_out_frames[i], -0.5, 0, gpu_out_frames[i]);
+        cv::cuda::bilateralFilter(gpu_out_frames[i], gpu_out_frames[i], 5, 50, 50);
+    }
 
-        gpu_in_frames[i] = gpu_out_frames[i];
-
-        cv::cuda::bilateralFilter(gpu_in_frames[i], gpu_in_frames[i], 5, 50, 50);
-
-        gpu_in_frames[i].download(*cur);
+    for (size_t i = 0; i<std::distance(begin, end); i++) {
+        gpu_out_frames[i].upload(begin[i]);
     }
 }
 

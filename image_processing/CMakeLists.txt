@@ -16,7 +16,7 @@ add_library(nip
         src/blur_stage.hpp
         src/equalize_stage.cpp
         src/equalize_stage.hpp
-        src/preprocess_gpu_stage.cpp)
+        src/preprocess_gpu_stage.cpp src/postprocess_gpu_stage.cpp src/postprocess_gpu_stage.hpp)
 
 target_include_directories(nip PUBLIC include
         PRIVATE ${InferenceEngine_INCLUDE_DIRS}
