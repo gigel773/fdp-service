@@ -1,9 +1,9 @@
 #include <benchmark/benchmark.h>
-#include <opencv2/opencv.hpp>
 #include <vector>
 #include <filesystem>
 
 #include <work_queue.hpp>
+
 #include "common/util.hpp"
 
 constexpr const char face_path[] = R"(../../photos/)";
@@ -12,7 +12,7 @@ template<size_t batch_size>
 static inline void BM_impl(benchmark::State& state)
 {
     auto work_queue = nntu::img::work_queue<batch_size>(1);
-    auto pipeline = nntu::img::default_pipeline_impl<batch_size>(120);
+    auto pipeline = nntu::img::cpu_pipeline_impl<batch_size>(120);
 
     work_queue.attach_to(pipeline);
 
@@ -46,62 +46,74 @@ static inline void BM_impl(benchmark::State& state)
     state.SetItemsProcessed(batch_size);
 }
 
-void BM_default_pipeline_1_test(benchmark::State& state)
+void BM_gpu_pipeline_1_test(benchmark::State& state)
 {
     constexpr const size_t batch_size = 1;
 
     BM_impl<batch_size>(state);
 }
 
-void BM_default_pipeline_64_test(benchmark::State& state)
+void BM_gpu_pipeline_64_test(benchmark::State& state)
 {
     constexpr const size_t batch_size = 64;
 
     BM_impl<batch_size>(state);
 }
 
-void BM_default_pipeline_128_test(benchmark::State& state)
+void BM_gpu_pipeline_128_test(benchmark::State& state)
 {
     constexpr const size_t batch_size = 128;
 
     BM_impl<batch_size>(state);
 }
 
-void BM_default_pipeline_192_test(benchmark::State& state)
+void BM_gpu_pipeline_192_test(benchmark::State& state)
 {
     constexpr const size_t batch_size = 192;
 
     BM_impl<batch_size>(state);
 }
 
-void BM_default_pipeline_512_test(benchmark::State& state)
+void BM_gpu_pipeline_512_test(benchmark::State& state)
 {
     constexpr const size_t batch_size = 512;
 
     BM_impl<batch_size>(state);
 }
 
-BENCHMARK(BM_default_pipeline_1_test)
+void BM_gpu_pipeline_1024_test(benchmark::State& state)
+{
+    constexpr const size_t batch_size = 1024;
+
+    BM_impl<batch_size>(state);
+}
+
+BENCHMARK(BM_gpu_pipeline_1_test)
         ->Unit(benchmark::kMicrosecond)
         ->MeasureProcessCPUTime()
         ->UseRealTime();
 
-BENCHMARK(BM_default_pipeline_64_test)
+BENCHMARK(BM_gpu_pipeline_64_test)
         ->Unit(benchmark::kMicrosecond)
         ->MeasureProcessCPUTime()
         ->UseRealTime();
 
-BENCHMARK(BM_default_pipeline_128_test)
+BENCHMARK(BM_gpu_pipeline_128_test)
         ->Unit(benchmark::kMicrosecond)
         ->MeasureProcessCPUTime()
         ->UseRealTime();
 
-BENCHMARK(BM_default_pipeline_192_test)
+BENCHMARK(BM_gpu_pipeline_192_test)
         ->Unit(benchmark::kMicrosecond)
         ->MeasureProcessCPUTime()
         ->UseRealTime();
 
-BENCHMARK(BM_default_pipeline_512_test)
+BENCHMARK(BM_gpu_pipeline_512_test)
+        ->Unit(benchmark::kMicrosecond)
+        ->MeasureProcessCPUTime()
+        ->UseRealTime();
+
+BENCHMARK(BM_gpu_pipeline_1024_test)
         ->Unit(benchmark::kMicrosecond)
         ->MeasureProcessCPUTime()
         ->UseRealTime();

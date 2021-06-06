@@ -37,13 +37,20 @@ static inline void BM_impl(benchmark::State& state)
         }
     }
 
-    size_t total_size = 0;
+    uint64_t total_size = 0;
     for (const auto& img : nntu::test::load_images(face_path, batch_size)) {
         total_size += img.total()*img.elemSize();
     }
 
     state.SetBytesProcessed(total_size*state.iterations());
     state.SetItemsProcessed(batch_size);
+}
+
+void BM_gpu_pipeline_1_test(benchmark::State& state)
+{
+    constexpr const size_t batch_size = 1;
+
+    BM_impl<batch_size>(state);
 }
 
 void BM_gpu_pipeline_64_test(benchmark::State& state)
@@ -60,12 +67,31 @@ void BM_gpu_pipeline_128_test(benchmark::State& state)
     BM_impl<batch_size>(state);
 }
 
+void BM_gpu_pipeline_192_test(benchmark::State& state)
+{
+    constexpr const size_t batch_size = 192;
+
+    BM_impl<batch_size>(state);
+}
+
 void BM_gpu_pipeline_512_test(benchmark::State& state)
 {
     constexpr const size_t batch_size = 512;
 
     BM_impl<batch_size>(state);
 }
+
+void BM_gpu_pipeline_1024_test(benchmark::State& state)
+{
+    constexpr const size_t batch_size = 1024;
+
+    BM_impl<batch_size>(state);
+}
+
+BENCHMARK(BM_gpu_pipeline_1_test)
+        ->Unit(benchmark::kMicrosecond)
+        ->MeasureProcessCPUTime()
+        ->UseRealTime();
 
 BENCHMARK(BM_gpu_pipeline_64_test)
         ->Unit(benchmark::kMicrosecond)
@@ -77,7 +103,17 @@ BENCHMARK(BM_gpu_pipeline_128_test)
         ->MeasureProcessCPUTime()
         ->UseRealTime();
 
+BENCHMARK(BM_gpu_pipeline_192_test)
+        ->Unit(benchmark::kMicrosecond)
+        ->MeasureProcessCPUTime()
+        ->UseRealTime();
+
 BENCHMARK(BM_gpu_pipeline_512_test)
+        ->Unit(benchmark::kMicrosecond)
+        ->MeasureProcessCPUTime()
+        ->UseRealTime();
+
+BENCHMARK(BM_gpu_pipeline_1024_test)
         ->Unit(benchmark::kMicrosecond)
         ->MeasureProcessCPUTime()
         ->UseRealTime();
