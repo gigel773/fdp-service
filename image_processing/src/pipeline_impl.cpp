@@ -7,6 +7,8 @@
 #include "equalize_stage.hpp"
 #include "preprocess_gpu_stage.hpp"
 #include "postprocess_gpu_stage.hpp"
+#include "preprocess_cpu_stage.hpp"
+#include "postprocess_cpu_stage.hpp"
 
 #include <tbb/tbb.h>
 
@@ -32,6 +34,21 @@ namespace nntu::img {
     }
 
     template<size_t batch_size>
+    auto cpu_pipeline_impl(size_t required_size) -> pipeline<batch_size>
+    {
+#ifdef WITH_TBB
+        tbb::task_scheduler_init init(tbb::task_scheduler_init::automatic);
+#endif
+        pipeline<batch_size> result({
+                new preprocess_cpu_stage(),
+                new landmarks_stage(batch_size),
+                new postprocess_cpu_stage(required_size)
+        });
+
+        return result;
+    }
+
+    template<size_t batch_size>
     auto gpu_pipeline_impl(size_t required_size) -> pipeline<batch_size>
     {
         pipeline<batch_size> result({
@@ -44,13 +61,55 @@ namespace nntu::img {
     }
 
     template
+    auto default_pipeline_impl(size_t required_size) -> pipeline<1>;
+
+    template
+    auto default_pipeline_impl(size_t required_size) -> pipeline<32>;
+
+    template
     auto default_pipeline_impl(size_t required_size) -> pipeline<64>;
 
     template
     auto default_pipeline_impl(size_t required_size) -> pipeline<128>;
 
     template
+    auto default_pipeline_impl(size_t required_size) -> pipeline<192>;
+
+    template
+    auto default_pipeline_impl(size_t required_size) -> pipeline<256>;
+
+    template
     auto default_pipeline_impl(size_t required_size) -> pipeline<512>;
+
+    template
+    auto cpu_pipeline_impl(size_t required_size) -> pipeline<1>;
+
+    template
+    auto cpu_pipeline_impl(size_t required_size) -> pipeline<32>;
+
+    template
+    auto cpu_pipeline_impl(size_t required_size) -> pipeline<64>;
+
+    template
+    auto cpu_pipeline_impl(size_t required_size) -> pipeline<128>;
+
+    template
+    auto cpu_pipeline_impl(size_t required_size) -> pipeline<192>;
+
+    template
+    auto cpu_pipeline_impl(size_t required_size) -> pipeline<256>;
+
+    template
+    auto cpu_pipeline_impl(size_t required_size) -> pipeline<512>;
+
+    template
+    auto cpu_pipeline_impl(size_t required_size) -> pipeline<1024>;
+
+    template
+    auto gpu_pipeline_impl(size_t required_size) -> pipeline<1>;
+
+    template
+    auto gpu_pipeline_impl(size_t required_size) -> pipeline<32>;
 
     template
     auto gpu_pipeline_impl(size_t required_size) -> pipeline<64>;
@@ -59,5 +118,14 @@ namespace nntu::img {
     auto gpu_pipeline_impl(size_t required_size) -> pipeline<128>;
 
     template
+    auto gpu_pipeline_impl(size_t required_size) -> pipeline<192>;
+
+    template
+    auto gpu_pipeline_impl(size_t required_size) -> pipeline<256>;
+
+    template
     auto gpu_pipeline_impl(size_t required_size) -> pipeline<512>;
+
+    template
+    auto gpu_pipeline_impl(size_t required_size) -> pipeline<1024>;
 }
